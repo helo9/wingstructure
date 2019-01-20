@@ -11,7 +11,7 @@ def calcarea(outline):
     return A
 
 
-def staticmoments(outline):
+def calcstaticmoments(outline):
     
     x_i, y_i = outline.T
     x_ip1, y_ip1 = np.roll(outline.T, 1, axis=1)
@@ -22,7 +22,7 @@ def staticmoments(outline):
     return S_x, S_y
 
 
-def inertiamoments(outline):
+def calcinertiamoments(outline):
     
     x_i, y_i = outline.T
     x_ip1, y_ip1 = np.roll(outline.T, 1, axis=1)
@@ -37,13 +37,16 @@ def inertiamoments(outline):
     return I_xx, I_yy, I_xy
 
 
-def neutralcenter(outline):
+def calcneutralcenter(outline):
     
     area_ = calcarea(outline)
     
-    S_x, S_y = staticmoments(outline)
+    S_x, S_y = calcstaticmoments(outline)
     
     x_nc = S_y/area_
     y_nc = S_x/area_
     
     return x_nc, y_nc
+
+
+# TODO implement AnalaysisClass

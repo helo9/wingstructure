@@ -24,22 +24,24 @@ Example
    foam = Material(1.225)
    sandwich = Material(1.225)
 
-   # Add layers
-   outerlayer = structure.Layer(sectionbase, carbonfabric, 5e-4)
-   core = structure.Layer(outerlayer, foam, 1e-2)
-   innerlayer = structure.Layer(core, carbonfabric, 5e-4)
+   # create layers
+   outerlayer = structure.Layer(carbonfabric, 5e-4)
+   core = structure.Layer(foam, 1e-2)
+   innerlayer = structure.Layer(carbonfabric, 5e-4)
 
-   # Add Spar
-   spar = structure.ISpar(parent=innerlayer, 
-                          material={'flange': carbonfabric, 'web': sandwich},
+   # create Spar
+   spar = structure.ISpar(material={'flange': carbonfabric, 'web': sandwich},
                           midpos=0.45,
                           flangewidth=0.2,
                           flangethickness=0.03,
                           webpos=0.5,
                           webthickness=0.02)
 
+    # add to sectionbase
+    sectionbase.extend([outerlayer, core, innerlayer, spar])
+
    # Analyse Mass
-   massana = structure.MassAnalysis(spar)
+   massana = structure.MassAnalysis(sectionbase)
    cg, mass = massana.massproperties()
 """
 
@@ -53,17 +55,6 @@ from shapely import ops
 from shapely.algorithms import cga
 
 
-def updatetrigger(f):
-    @wraps
-    def f_withupdate(self, *args, **kwds):
-        res = f(self, *args, **kwds)
-
-        self._trigger_update()
-
-        return res
-
-    return f_withupdate
-
 class _AbstractBaseStructure:
     def __init__(self, material):
         super().__init__()
@@ -73,20 +64,18 @@ class _AbstractBaseStructure:
 
         self.interior = None
         self.geometry = None
-        self._updatecallbacks = []
+        self._updatecallback = None
     
-    def _add_updatecallback(self, callback):
-        if callback not in self._updatecallbacks:
-            self._updatecallbacks.append(callback)
+    def _set_updatecallback(self, callback):
+        if self._updatecallback is None:
+            self._updatecallback = callback
 
-    def _rm_updatecallback(self, callback):
-        try:
-            self._updatecallbacks.remove(callback)
-        except ValueError:
-            return
+    def _unset_updatecallback(self):
+        self._updatecallback = None
 
     def _trigger_update(self):
-        for callback in self._updatecallbacks:
+        if self._updatecallback is not None:
+            callback = self._updatecallback
             callback(self)
 
     @abstractmethod
@@ -135,6 +124,11 @@ class _AbstractBaseStructure:
     def cut_elements(self):
         return self._cut_elements
     
+    def exportgeometry(self):
+        arraygeom = geom2array(self.geometry)
+        arraygeom.material = self.material
+
+        return [arraygeom]
 
 class SectionBase:
     """Foundation for section's wing structure description
@@ -167,7 +161,7 @@ class SectionBase:
             parentgeometry = self.features[-2].interior
 
         self.features[-1]._update_geometry(parentgeometry)
-        self.features[-1]._add_updatecallback(self._update_callback)
+        self.features[-1]._set_updatecallback(self._update_callback)
 
     def insert(self, index, newfeature):
         self.features.insert(index, newfeature)
@@ -181,12 +175,12 @@ class SectionBase:
         if feature not in self.features:
             raise Exception('No feature {} found.'.format(feature))
 
-        feature._rm_updatecallback(self._update_callback)
+        feature._unset_updatecallback()
         self.features.remove(feature)
 
     def pop(self):
         popped = self.features.pop()
-        popped._rm_updatecallback(self._update_callback)
+        popped._unset_updatecallback()
 
     def _update_callback(self, updated_feature):
         try:
@@ -479,8 +473,6 @@ class ISpar(_AbstractBaseStructure):
                                end, exterior.bounds[3]+3)
 
         cutgeom = cutbox.intersection(exterior)
-
-        self.tmp = cutgeom
 
         offsetside = self._get_inside_direction(exterior)
 
@@ -867,3 +859,20 @@ def rework_svg(svg:str, width:float, height:float=100.0, stroke_width:float=None
                  svg)
 
     return svg
+
+
+def geom2array(geometry):
+
+    from collections import namedtuple
+
+    ArrayGeom = namedtuple('ArrayGeom', ['exterior','interiors','material'])
+
+    if geometry.type != 'Polygon':
+        raise ValueError('Geometry must be of type \'Polygon\'')
+
+    exterior = np.array(geometry.exterior.coords)
+
+    interiors = [np.array(interior.coords) for interior in geometry.interiors]
+
+    return ArrayGeom(exterior, interiors, None)
+    
