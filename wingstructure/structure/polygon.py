@@ -49,4 +49,46 @@ def calcneutralcenter(outline):
     return x_nc, y_nc
 
 
+def calcgeom(geom, property_functions):
+
+    properties = {propfun:None for propfun in property_functions}
+
+    isexterior = True
+    for outline in (geom.exterior, *geom.interiors):
+        if isexterior:
+            for propfun in property_functions:
+                properties[propfun] = np.array(propfun(outline))
+            isexterior = False
+        else:
+            for propfun in property_functions:
+                properties[propfun] -= np.array(propfun(outline))
+
+    return [properties[propfun] for propfun in property_functions]
+
+
 # TODO implement AnalaysisClass
+class StucturalAnalysis:
+    def __init__(self, secbase):
+        self._secbase = secbase
+        self.nc = None
+        self.staticmoments = None
+        self.intertiamoments = None
+
+    def update(self):
+        # calculate normal center
+
+        weighted_area_ = 0
+        weighted_staticmoment_ = np.zeros((2))
+
+        for feature in self._secbase.features:
+            for geom in feature.exportgeometry():
+                area, staticmoment = calcgeom(geom, [calcarea, calcstaticmoments])
+                
+                print(staticmoment, geom.material.E, weighted_staticmoment_)
+
+                weighted_area_ += geom.material.E*area
+                weighted_staticmoment_ += geom.material.E*staticmoment
+
+        self.nc = weighted_staticmoment_/weighted_area_        
+
+        #TODO: calculate properties regarding normal center

@@ -126,9 +126,8 @@ class _AbstractBaseStructure:
     
     def exportgeometry(self):
         arraygeom = geom2array(self.geometry)
-        arraygeom.material = self.material
 
-        return [arraygeom]
+        return [arraygeom._replace(material=self.material)]
 
 class SectionBase:
     """Foundation for section's wing structure description
