@@ -1,5 +1,7 @@
 import numpy as np
 
+# TODO: Warning all outlines have to be clockwise defined
+
 
 def calcarea(outline):
     

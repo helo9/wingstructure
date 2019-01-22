@@ -49,6 +49,7 @@ from abc import ABC, abstractmethod
 from functools import wraps
 
 import numpy as np
+from collections import namedtuple
 from numpy.linalg import norm
 from shapely import geometry as shpl_geom
 from shapely import ops
@@ -860,11 +861,12 @@ def rework_svg(svg:str, width:float, height:float=100.0, stroke_width:float=None
     return svg
 
 
+ArrayGeom = namedtuple('ArrayGeom', ['exterior','interiors','material'])
+
+
 def geom2array(geometry, refpoint=np.zeros(2)):
 
-    from collections import namedtuple
 
-    ArrayGeom = namedtuple('ArrayGeom', ['exterior','interiors','material'])
 
     if geometry.type != 'Polygon':
         raise ValueError('Geometry must be of type \'Polygon\'')
