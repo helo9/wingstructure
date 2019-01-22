@@ -67,7 +67,7 @@ def calcgeom(geom, property_functions):
 
 
 # TODO implement AnalaysisClass
-class StucturalAnalysis:
+class StructuralAnalysis:
     def __init__(self, secbase):
         self._secbase = secbase
         self.nc = None
@@ -77,18 +77,27 @@ class StucturalAnalysis:
     def update(self):
         # calculate normal center
 
+        self.area = 0
+
         weighted_area_ = 0
         weighted_staticmoment_ = np.zeros((2))
 
         for feature in self._secbase.features:
             for geom in feature.exportgeometry():
                 area, staticmoment = calcgeom(geom, [calcarea, calcstaticmoments])
-                
-                print(staticmoment, geom.material.E, weighted_staticmoment_)
 
+                self.area += area
                 weighted_area_ += geom.material.E*area
                 weighted_staticmoment_ += geom.material.E*staticmoment
 
         self.nc = weighted_staticmoment_/weighted_area_        
 
         #TODO: calculate properties regarding normal center
+
+        self.bendingstiffness = np.zeros(3)
+
+        for feature in self._secbase.features:
+            for geom in feature.exportgeometry(self.nc):
+                inertiamoment = calcgeom(geom, [calcinertiamoments])[0]
+
+                self.bendingstiffness += inertiamoment*geom.material.E

@@ -124,8 +124,8 @@ class _AbstractBaseStructure:
     def cut_elements(self):
         return self._cut_elements
     
-    def exportgeometry(self):
-        arraygeom = geom2array(self.geometry)
+    def exportgeometry(self, refpoint=np.zeros(2)):
+        arraygeom = geom2array(self.geometry, refpoint)
 
         return [arraygeom._replace(material=self.material)]
 
@@ -860,7 +860,7 @@ def rework_svg(svg:str, width:float, height:float=100.0, stroke_width:float=None
     return svg
 
 
-def geom2array(geometry):
+def geom2array(geometry, refpoint=np.zeros(2)):
 
     from collections import namedtuple
 
@@ -869,9 +869,9 @@ def geom2array(geometry):
     if geometry.type != 'Polygon':
         raise ValueError('Geometry must be of type \'Polygon\'')
 
-    exterior = np.array(geometry.exterior.coords)
+    exterior = np.array(geometry.exterior.coords) - refpoint.flat
 
-    interiors = [np.array(interior.coords) for interior in geometry.interiors]
+    interiors = [np.array(interior.coords) - refpoint.flat for interior in geometry.interiors]
 
     return ArrayGeom(exterior, interiors, None)
     
