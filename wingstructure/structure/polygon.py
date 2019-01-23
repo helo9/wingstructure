@@ -30,9 +30,9 @@ def calcinertiamoments(outline):
     x_ip1, y_ip1 = np.roll(outline.T, 1, axis=1)
     
     I_xx = 1/12 * np.sum((y_ip1**2 + (y_i+y_ip1)*y_i)\
-                         +(y_ip1*x_i-y_i*x_ip1))
+                         *(y_ip1*x_i-y_i*x_ip1))
     I_yy = 1/12 * np.sum((x_ip1**2 + (x_i+x_ip1)*x_i)\
-                         +(y_ip1*x_i-y_i*x_ip1))
+                         *(y_ip1*x_i-y_i*x_ip1))
     I_xy = 1/12 * np.sum(0.5*x_ip1**2*y_i**2-0.5*x_i**2*y_ip1**2\
                           -(y_ip1*x_i-y_i*x_ip1)*(x_i*y_i+x_ip1*y_ip1))
     
@@ -69,6 +69,7 @@ def calcgeom(geom, property_functions):
 
 
 # TODO implement AnalaysisClass
+# TODO: allow secbase and feature as input
 class StructuralAnalysis:
     def __init__(self, secbase):
         self._secbase = secbase
