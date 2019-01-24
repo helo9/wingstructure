@@ -210,6 +210,15 @@ class SectionBase:
 
         return rework_svg(svg, 1000, 250)
 
+    def exportgeometry(self, refpoint=np.zeros(2)):
+
+        geoms = []
+
+        for feature in self.features:
+            geoms.extend(feature.exportgeometry(refpoint))
+        
+        return geoms
+
 
 class Layer(_AbstractBaseStructure):
     """Layer of constant thickness representation

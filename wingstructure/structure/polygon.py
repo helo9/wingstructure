@@ -83,8 +83,8 @@ def calcgeom(geom, property_functions):
 # TODO implement AnalaysisClass
 # TODO: allow secbase and feature as input
 class StructuralAnalysis:
-    def __init__(self, secbase):
-        self._secbase = secbase
+    def __init__(self, structure):
+        self._structure = structure
         self.nc = None
         self.staticmoments = None
         self.intertiamoments = None
@@ -97,13 +97,12 @@ class StructuralAnalysis:
         weighted_area_ = 0
         weighted_staticmoment_ = np.zeros((2))
 
-        for feature in self._secbase.features:
-            for geom in feature.exportgeometry():
-                area, staticmoment = calcgeom(geom, [calcarea, calcstaticmoments])
+        for geom in self._structure.exportgeometry():
+            area, staticmoment = calcgeom(geom, [calcarea, calcstaticmoments])
 
-                self.area += area
-                weighted_area_ += geom.material.E*area
-                weighted_staticmoment_ += geom.material.E*staticmoment
+            self.area += area
+            weighted_area_ += geom.material.E*area
+            weighted_staticmoment_ += geom.material.E*staticmoment
 
         self.nc = weighted_staticmoment_/weighted_area_        
 
@@ -111,8 +110,7 @@ class StructuralAnalysis:
 
         self.bendingstiffness = np.zeros(3)
 
-        for feature in self._secbase.features:
-            for geom in feature.exportgeometry(self.nc):
-                inertiamoment = calcgeom(geom, [calcinertiamoments])[0]
+        for geom in self._structure.exportgeometry(self.nc):
+            inertiamoment = calcgeom(geom, [calcinertiamoments])[0]
 
-                self.bendingstiffness += inertiamoment*geom.material.E
+            self.bendingstiffness += inertiamoment*geom.material.E
