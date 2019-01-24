@@ -51,6 +51,18 @@ def calcneutralcenter(outline):
     return x_nc, y_nc
 
 
+def calcprincipalaxis(I_xx, I_yy, I_xy):
+    return np.arctan2(2*I_xy, I_yy-I_xx)
+
+
+def transform_intertiamoments(I_xx, I_yy, I_xy, φ):
+    I_ξξ = (I_xx+I_yy)/2 + (I_yy-I_xx)/2 * np.cos(2*φ) - I_xy * np.sin(2*φ)
+    I_ηη = (I_xx+I_yy)/2 - (I_yy-I_xx)/2 * np.cos(2*φ) + I_xy * np.sin(2*φ)
+    I_ξη = (I_yy-I_xx)/2 * np.cos(2*φ) + I_xy * np.sin(2*φ)
+
+    return I_ξξ, I_ηη, I_ξη
+
+
 def calcgeom(geom, property_functions):
 
     properties = {propfun:None for propfun in property_functions}
