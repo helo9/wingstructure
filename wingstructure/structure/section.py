@@ -870,19 +870,43 @@ def rework_svg(svg:str, width:float, height:float=100.0, stroke_width:float=None
     return svg
 
 
-ArrayGeom = namedtuple('ArrayGeom', ['exterior','interiors','material'])
+ArrayStruc = namedtuple('ArrayGeom', ['exterior','interiors','material'])
 
 
 def geom2array(geometry, refpoint=np.zeros(2)):
+    """Helper function to export polygon geometry from shapely to numpy arrays based format
+    
+    Parameters
+    ----------
+    geometry : shapely.Polygon
+        Geometrie to be exported (must be a Polygon)
+    refpoint : np.array, optional
+        reference point (2D), will be substracted from coordinates 
+        (the default is np.zeros(2)
+    
+    Raises
+    ------
+    ValueError
+        Wrong geometry type given..
+    
+    Returns
+    -------
+    ArrayStruc
+        Custom geometry and material container
+    """
 
-
+    def coordsclockwise(linestring):
+        if linestring.signed_area > 0.0:
+            return np.array(linestring.coords)
+        else:
+            return np.array(linestring.coords)[::-1]
 
     if geometry.type != 'Polygon':
         raise ValueError('Geometry must be of type \'Polygon\'')
 
-    exterior = np.array(geometry.exterior.coords) - refpoint.flat
+    exterior = coordsclockwise(geometry.exterior) - refpoint.flat
 
-    interiors = [np.array(interior.coords) - refpoint.flat for interior in geometry.interiors]
+    interiors = [coordsclockwise(interior) - refpoint.flat for interior in geometry.interiors]
 
-    return ArrayGeom(exterior, interiors, None)
+    return ArrayStruc(exterior, interiors, None)
     
