@@ -160,7 +160,9 @@ def transform_intertiamoments(I_xx, I_yy, I_xy, φ):
     return I_ξξ, I_ηη, I_ξη
 
 
-def calcgeom(geom, property_functions):
+def _calcgeom(geom, property_functions):
+    """helper function calculating asked properties for geometry
+    """
 
     properties = {propfun:None for propfun in property_functions}
 
@@ -177,9 +179,15 @@ def calcgeom(geom, property_functions):
     return [properties[propfun] for propfun in property_functions]
 
 
-# TODO implement AnalaysisClass
-# TODO: allow secbase and feature as input
 class StructuralAnalysis:
+    """Class for structural analysis of Sections or Features
+
+    Parameters
+    ----------
+    structure: SectionBase or Feature
+        structure element to be analysed
+    """
+
     def __init__(self, structure):
         self._structure = structure
         self.nc = None
@@ -195,7 +203,7 @@ class StructuralAnalysis:
         weighted_staticmoment_ = np.zeros((2))
 
         for geom in self._structure.exportgeometry():
-            area, staticmoment = calcgeom(geom, [calcarea, calcstaticmoments])
+            area, staticmoment = _calcgeom(geom, [calcarea, calcstaticmoments])
 
             self.area += area
             weighted_area_ += geom.material.E*area
@@ -208,6 +216,6 @@ class StructuralAnalysis:
         self.bendingstiffness = np.zeros(3)
 
         for geom in self._structure.exportgeometry(self.nc):
-            inertiamoment = calcgeom(geom, [calcinertiamoments])[0]
+            inertiamoment = _calcgeom(geom, [calcinertiamoments])[0]
 
             self.bendingstiffness += inertiamoment*geom.material.E
