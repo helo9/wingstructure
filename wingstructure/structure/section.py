@@ -895,11 +895,11 @@ def geom2array(geometry, refpoint=np.zeros(2)):
         Custom geometry and material container
     """
 
-    def coordsclockwise(linestring):
-        if linestring.signed_area > 0.0:
-            return np.array(linestring.coords)
+    def coordsclockwise(linearring):
+        if cga.signed_area(linearring) > 0.0:
+            return np.array(linearring.coords)
         else:
-            return np.array(linestring.coords)[::-1]
+            return np.array(linearring.coords)[::-1]
 
     if geometry.type != 'Polygon':
         raise ValueError('Geometry must be of type \'Polygon\'')

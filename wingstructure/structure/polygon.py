@@ -186,13 +186,22 @@ class StructuralAnalysis:
     ----------
     structure: SectionBase or Feature
         structure element to be analysed
+
+    Attributes
+    ----------
+    nc : np.array
+        Neutralcenter of structure, available after calling update
+    area : float
+        Overall Area of structure, available after calling update
+    bendingstiffness : np.array
+        bending stiffness of structure, available after calling update
     """
 
     def __init__(self, structure):
         self._structure = structure
         self.nc = None
-        self.staticmoments = None
-        self.intertiamoments = None
+        self.area = None
+        self.bendingstiffness = None
 
     def update(self):
         # calculate normal center
@@ -211,7 +220,7 @@ class StructuralAnalysis:
 
         self.nc = weighted_staticmoment_/weighted_area_        
 
-        #TODO: calculate properties regarding normal center
+        # calculate properties regarding normal center
 
         self.bendingstiffness = np.zeros(3)
 
