@@ -1,9 +1,33 @@
-import numpy as np
+"""Module for structural section analysis based on polygon geometry definition.
 
-# TODO: Warning all outlines have to be clockwise defined
+Inside this module basis formulas for calculation of area, static moments and 
+moments of inertia based on polygon geometry are defined. Furthermore functions
+for calculation of the derived quanities neutral center and principal axis angle
+are included. For a simplified application to sections defined with *section*
+module the class *StructuralAnalysis* is include. 
+
+.. HINT::
+   All coordinate sequences passed directly to the low level functions (not the class)
+   have to be defined in a clockwise manner.
+"""
+
+import numpy as np
 
 
 def calcarea(outline):
+    """Calculate are within polygon
+    
+    Parameters
+    ----------
+    outline : np.array
+        2D coordinates of a polygon area
+    
+    Returns
+    -------
+    float
+        area within outline
+    """
+
     
     x_i, y_i = outline.T
     x_ip1, y_ip1 = np.roll(outline.T, 1, axis=1)
@@ -14,7 +38,19 @@ def calcarea(outline):
 
 
 def calcstaticmoments(outline):
+    """Calculate the static moment of a polygon
     
+    Parameters
+    ----------
+    outline : np.array
+        2D coordinates of a polygon area
+    
+    Returns
+    -------
+    tuple(float)
+        static moments
+    """
+
     x_i, y_i = outline.T
     x_ip1, y_ip1 = np.roll(outline.T, 1, axis=1)
     
@@ -25,7 +61,19 @@ def calcstaticmoments(outline):
 
 
 def calcinertiamoments(outline):
+    """Calculate moment of inertia for given polygon
     
+    Parameters
+    ----------
+    outline : np.array
+        2D coordinates of a polygon area
+    
+    Returns
+    -------
+    tuple(float)
+        moments of inertia (I_xx, I_yy, I_xy)
+    """
+
     x_i, y_i = outline.T
     x_ip1, y_ip1 = np.roll(outline.T, 1, axis=1)
     
@@ -40,6 +88,19 @@ def calcinertiamoments(outline):
 
 
 def calcneutralcenter(outline):
+    """Calculate the neutral center of polygon
+    
+    Parameters
+    ----------
+    outline : np.array
+        2D coordinates of a polygon area
+    
+    Returns
+    -------
+    tuple(float)
+        (x_n, y_n)
+    """
+
     
     area_ = calcarea(outline)
     
@@ -52,10 +113,46 @@ def calcneutralcenter(outline):
 
 
 def calcprincipalaxis(I_xx, I_yy, I_xy):
+    """Calculates angle of first principal axis
+    
+    Parameters
+    ----------
+    I_xx : float
+        area moment of inertia
+    I_yy : float
+        area moment of inertia
+    I_xy : float
+        area moment of inertia
+    
+    Returns
+    -------
+    float
+        principal axis angle
+    """
+
     return np.arctan2(2*I_xy, I_yy-I_xx)
 
 
 def transform_intertiamoments(I_xx, I_yy, I_xy, φ):
+    """Transform moments of inertia from into rotated coordinate system
+    
+    Parameters
+    ----------
+    I_xx : float
+        area moment of inertia
+    I_yy : float
+        area moment of inertia
+    I_xy : float
+        area moment of inertia
+    φ: float
+        angle to roatet
+    
+    Returns
+    -------
+    tuple of floats
+        moment of inertia in rotated coordinate system
+    """
+
     I_ξξ = (I_xx+I_yy)/2 + (I_yy-I_xx)/2 * np.cos(2*φ) - I_xy * np.sin(2*φ)
     I_ηη = (I_xx+I_yy)/2 - (I_yy-I_xx)/2 * np.cos(2*φ) + I_xy * np.sin(2*φ)
     I_ξη = (I_yy-I_xx)/2 * np.cos(2*φ) + I_xy * np.sin(2*φ)
