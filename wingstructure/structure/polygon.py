@@ -4,7 +4,7 @@ Inside this module basis formulas for calculation of area, static moments and
 moments of inertia based on polygon geometry are defined. Furthermore functions
 for calculation of the derived quanities neutral center and principal axis angle
 are included. For a simplified application to sections defined with *section*
-module the class *StructuralAnalysis* is include. 
+module the class *StructuralAnalysis* is also included. 
 
 .. HINT::
    All coordinate sequences passed directly to the low level functions (not the class)
@@ -15,7 +15,7 @@ import numpy as np
 
 
 def calcarea(outline):
-    """Calculate are within polygon
+    """Calculate area within polygon
     
     Parameters
     ----------
