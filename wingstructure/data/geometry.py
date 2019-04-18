@@ -319,17 +319,17 @@ class _BaseWing(object):
                 break
         
         if ii == 0:
-            return {0: self.sections[ii].airfoil}
+            return ((self.sections[ii].airfoil, 1.0),)
         
         airfoil1 = self.sections[ii-1].airfoil
         airfoil2 = self.sections[ii].airfoil
         
         if airfoil1 == airfoil2:
-            return {0: airfoil1}
+            return ((airfoil1, 1.0),)
             
         else:
             beta = (y-self.sections[ii-1].pos.y)/(self.sections[ii].pos.y-self.sections[ii-1].pos.y)
-            return {0: airfoil1, 1: airfoil2, 'beta':beta}
+            return ((airfoil1, 1-beta), (airfoil2, beta),)
 
     @property
     def ys(self) -> np.array:
