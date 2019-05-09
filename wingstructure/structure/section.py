@@ -216,10 +216,16 @@ class SectionBase:
         # reset geometries
         self._featuregeometries = []
 
+        self.tmp = []
+
         exterior = self._geometry
 
         for feature in self._features:
-            exterior, tmp_geometry = feature._calculate_geometry(exterior)
+            tmp, tmp_geometry = feature._calculate_geometry(exterior)
+            
+            self.tmp.append(tmp)
+
+            exterior=tmp
             self._featuregeometries.append(tmp_geometry)
     
     def _repr_svg_(self):
