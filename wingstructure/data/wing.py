@@ -29,7 +29,10 @@ class _Wing:
            leading edge position of mean aerodynamic chord
         mac: float
            mac length
-           
+        
+        Notes
+        -----
+        Implements formulas reported in http://dx.doi.org/10.1063/1.4951901
         """
         
         pos = np.zeros(3)
@@ -43,22 +46,24 @@ class _Wing:
                 lastsec = sec
                 continue
             
-            # calculate segment properties
-            segspan = sec.y - lastsec.y
-            segarea = (sec.chord + lastsec.chord) * segspan / 2
-            taper = sec.chord / lastsec.chord
-            taper1 = 1 + taper
-            frac = (taper + taper1) / (3 * taper1)
+            # short aliases for usage in formulas
+            x1, x2 = lastsec.x, sec.x
+            y1, y2 = lastsec.y, sec.y
+            c1, c2 = lastsec.chord, sec.chord
 
-            segmac = lastsec.chord * (taper**2 + taper1) / (1.5*taper1)
-            segx = lastsec.x + frac * (sec.x - lastsec.x)
-            segy = lastsec.y + frac * segspan
+            # segment properties
+            S = (c1+c2)/2 * (y2-y1)
+            λ = c2 / c1
+
+            segmac = 2/3 * c1 * (λ**2 + λ + 1) / (λ + 1)         
+            segx = x1 + (x2-x1) * (1+2*λ)/(3+3*λ)
+            segy = y1 + (y2-y1) * (1+2*λ)/(3+3*λ)
 
             # sum up values weighted by segment area
-            pos += np.array([segx, segy, 0]) * segarea
-            mac += segmac * segarea
+            pos += np.array([segx, segy, 0]) * S
+            mac += segmac * S
 
-            area += segarea
+            area += S
 
             lastsec = sec
         
