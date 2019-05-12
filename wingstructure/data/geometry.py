@@ -235,7 +235,7 @@ class _BaseWing(object):
 
     @property
     def mac(self) -> Section:
-        """calculates mean aerodynamic chord.
+        """calculate mean aerodynamic chord.
         
         Returns
         -------
