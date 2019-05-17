@@ -1,5 +1,5 @@
 from . import geometry
 from . import schema
 
-from .geometry import Wing, Point
+from .wing import Wing
 from .schema import loaddata

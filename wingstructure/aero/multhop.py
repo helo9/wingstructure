@@ -142,11 +142,11 @@ def multhop(ys: np.ndarray, αs: np.ndarray, chords: np.ndarray,
         M = len(ys)
 
         θs = np.arccos(-2* ys/b)
-        #print(θs)
+
         γs, α_is = _multhop_solve(θs, αs, chords, dcls, b, return_αi=True)
     
     # calculate lift coefficient distritbution
-    c_ls = 2*b/(np.array(chords)) * np.array(γs) # TODO: Check this formula
+    c_ls = 2*b/(np.array(chords)) * np.array(γs)
 
     # calculate overall lift coefficient (whole wing)
     C_L = π*Λ / (M+1) * np.sum(γs * np.sin(θs))
