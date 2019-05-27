@@ -1,6 +1,11 @@
 from collections import namedtuple
+from copy import deepcopy
 
 import numpy as np
+
+
+# data type for 3D-Coordinates
+Point = namedtuple('Point', 'x y z')
 
 
 class _Wing:
@@ -8,16 +13,17 @@ class _Wing:
 
     Not inteded for usage. Have a look at the Wing class.
     """
-    _Section = namedtuple('Section', ['chord', 'airfoil', 'x', 'y', 'z', 'twist'])
 
-    def __init__(self, x=0.0, y=0.0, z=0.0, symmetric=True):
-        self.pos = (x, y, z)
+    _Section = namedtuple('Section', ['pos', 'chord', 'twist', 'airfoil'])
+
+    def __init__(self,pos=(0.0, 0.0, 0.0), symmetric=True):
+        self.x, self.y, self.z = pos
         self.symmetric = symmetric
         self.sections = []
     
-    def append(self, chord, airfoil='', x=0.0, y=0.0, z=0.0, twist=0.0):
+    def append(self, pos=(0.0, 0.0, 0.0), chord=1.0, twist=0.0, airfoil=''):
         self.sections.append(
-            self._Section(chord, airfoil, x, y, z, twist)
+            self._Section(pos, chord, twist, airfoil)
         )
 
     def get_mac(self):
@@ -47,8 +53,8 @@ class _Wing:
                 continue
             
             # short aliases for usage in formulas
-            x1, x2 = lastsec.x, sec.x
-            y1, y2 = lastsec.y, sec.y
+            x1, x2 = lastsec.pos.x, sec.pos.x
+            y1, y2 = lastsec.pos.y, sec.pos.y
             c1, c2 = lastsec.chord, sec.chord
 
             # segment properties
@@ -76,13 +82,13 @@ class _Wing:
     def span(self):
         """Get span of wing."""
         if self.symmetric:
-            return 2*max((sec.y for sec in self.sections))
+            return 2*max((sec.pos.y for sec in self.sections))
 
     @property
     def area(self):
         """Get wing area."""
 
-        span_positions = [sec.y for sec in self.sections]
+        span_positions = [sec.pos.y for sec in self.sections]
         chord_lengths = [sec.chord for sec in self.sections]
 
         area = np.trapz(chord_lengths, span_positions)
@@ -105,8 +111,10 @@ class Wing(_Wing):
     
     Parameters
     ----------
-    x, y, z: float
+    pos: float
        coordinate system offset
+    rot: float
+       
     symmetric: bool
        wing symmetry regarding y=0.0
     """
@@ -114,10 +122,67 @@ class Wing(_Wing):
     _ControlSurface = namedtuple('ControlSurface', 
             ['pos1', 'pos2', 'depth1', 'depth2', 'cstype'])
 
-    def __init__(self, x=0.0, y=0.0, z=0.0, symmetric=True):
-        super().__init__(x, y, z, symmetric)
+    def __init__(self, pos=(0.0, 0.0, 0.0), symmetric=True):
+        super().__init__(pos, symmetric)
         self.controlsurfaces = {}
 
     def add_controlsurface(self, name, pos1, pos2, depth1, depth2, cstype):
         self.controlsurfaces[name] = self._ControlSurface(
                 pos1, pos2, depth1, depth2, cstype)
+
+    def _repr_svg_(self):
+        pass
+
+    @property
+    def chords(self):
+        return np.array([sec.chord for sec in self.sections])
+    
+    @property
+    def ys(self):
+        return np.array([sec.pos.y for sec in self.sections])
+
+    @property
+    def twists(self):
+        return np.array([sec.twist for sec in self.sections])
+
+    @property
+    def airfoils(self):
+        return np.array([sec.airfoil for sec in self.sections])
+
+    def within_airbrake(self, y):
+        within_ab = np.full_like(y, False)
+        for cs in self.controlsurfaces.values():
+            if cs.cstype in ('airbrake', 'spoiler'):
+                within_tmp = (cs.pos1 <= y) & (cs.pos2 >= y)
+                np.where(within_tmp, True, within_ab)
+        return within_ab
+
+    def within_control(self, csname, y):
+        try:
+            cs = self.controlsurfaces[csname]
+            return (cs.pos1 <= y) & (y <= cs.pos2)
+        except KeyError:
+            return np.full_like(y, False)
+
+    @classmethod
+    def from_dict(cls, adict):
+        
+        # create Wing instance
+        wing = cls(pos=Point(**adict['pos']))
+
+        # generate sections
+        for secdict in adict['sections']:
+            secdict_ = deepcopy(secdict)
+            secdict_['pos'] = Point(**secdict_['pos'])
+            wing.append(**secdict_)
+
+        # add control surfaces
+        try:
+            for name, csdict in adict['control-surfaces'].items():
+                print(csdict)
+                wing.add_controlsurface(name, **csdict)
+        except:
+            pass
+        
+        return wing
+
