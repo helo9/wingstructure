@@ -33,3 +33,9 @@ def _create_offset_box(line, thickness, side, bevel=0.0,
         connect1 = shpl_geom.LineString((line.coords[-1],offsetline.coords[0]))
         connect2 = shpl_geom.LineString((line.coords[0], offsetline.coords[-1]))
         return shpl_geom.Polygon(ops.linemerge((offsetline,connect1,line,connect2)))
+
+def _updatedecorator(method):
+    def wrappedcall(self, *args, **kwargs):
+        method(self, *args, **kwargs)
+        self._update()
+    return wrappedcall
