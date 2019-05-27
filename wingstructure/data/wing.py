@@ -179,9 +179,8 @@ class Wing(_Wing):
         # add control surfaces
         try:
             for name, csdict in adict['control-surfaces'].items():
-                print(csdict)
                 wing.add_controlsurface(name, **csdict)
-        except:
+        except KeyError:
             pass
         
         return wing
