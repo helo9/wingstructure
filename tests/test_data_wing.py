@@ -18,8 +18,8 @@ def d38wing():
     awing = Wing()
 
     awing.append(chord=0.943, airfoil='FX 61-184')
-    awing.append(chord=0.754, airfoil='FX 61-184', y=4.51)
-    awing.append(chord=0.377, airfoil='FX 60-12', x=0.134, y=7.5)
+    awing.append(chord=0.754, airfoil='FX 61-184', pos=(0.0, 4.51, 0.0))
+    awing.append(chord=0.377, airfoil='FX 60-12', pos=(0.134, 7.5, 0.0))
     
     return awing
 

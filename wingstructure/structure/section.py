@@ -294,7 +294,7 @@ class MassAnalysis:
         mass = 0.0
         cg = np.zeros(2)
             
-        for feature in self.secbase.features:
+        for feature in self.secbase._features:
             cur_cg, cur_mass = feature.massproperties
 
             mass += cur_mass

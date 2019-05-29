@@ -201,7 +201,7 @@ def _calc_flap_Δα(controlsurface, ys, η):
 
     cs = controlsurface
 
-    λ_k = np.interp(ys, [cs.pos1, cs.pos2], [cs.depth1, cs.depth2])
+    λ_k = np.interp(ys, [cs.pos1, cs.pos2], [cs.depth1, cs.depth2], left=0.0, right=0.0)
 
     λ_k[ys<0.0] = 0.0 # only consider one side (symmetric wing)
 

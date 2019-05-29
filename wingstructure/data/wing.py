@@ -23,7 +23,7 @@ class _Wing:
     
     def append(self, pos=(0.0, 0.0, 0.0), chord=1.0, twist=0.0, airfoil=''):
         self.sections.append(
-            self._Section(pos, chord, twist, airfoil)
+            self._Section(Point(*pos), chord, twist, airfoil)
         )
 
     def get_mac(self):
