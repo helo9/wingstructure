@@ -55,7 +55,7 @@ from shapely import geometry as shpl_geom
 from shapely import ops
 from shapely.algorithms import cga
 
-from .section_helper import _get_inside_direction, _create_offset_box, _updatedecorator
+from .section_helper import _get_inside_direction, _create_offset_box, _updatedecorator, _refine_interior
 
 
 class SectionBase:
