@@ -127,6 +127,23 @@ class Wing(_Wing):
         self.controlsurfaces = {}
 
     def add_controlsurface(self, name, pos1, pos2, depth1, depth2, cstype):
+        """Add controlsurface to Wing instance
+        
+        Parameters
+        ----------
+        name : str
+            identifier for control surface
+        pos1 : float
+            starting position (spanwise)
+        pos2 : float
+            end position (spanwise)
+        depth1 : float
+            start depth or chordwise position (depends on type)
+        depth2 : float
+            end depth or chordwise position (depends on type)
+        cstype : str
+            use one of the following type strings: flap, spoiler, airbrake
+        """
         self.controlsurfaces[name] = self._ControlSurface(
                 pos1, pos2, depth1, depth2, cstype)
 
@@ -166,7 +183,18 @@ class Wing(_Wing):
 
     @classmethod
     def from_dict(cls, adict):
+        """Create new Wing instance from dict
         
+        Parameters
+        ----------
+        adict : dict
+            dictionary containing wing data
+        
+        Returns
+        -------
+        Wing
+            instance object
+        """
         # create Wing instance
         wing = cls(pos=Point(**adict['pos']))
 
@@ -184,4 +212,45 @@ class Wing(_Wing):
             pass
         
         return wing
+    
+    def flatten(self):
+        """create flat wing instance
+        
+        Returns
+        -------
+        Wing
+            a flat wing instance
+        """
 
+        newwing = Wing()
+
+        lastsec = None
+        lastpos = 0.0
+
+        for section in self.sections:
+
+            curpos = section.pos
+
+            if lastsec is not None:
+                # calculate section distance in y-z-plane
+                pos1 = np.array(section.pos)
+                pos2 = np.array(lastsec.pos)
+
+                # ignore x -> 2D vector
+                distvec = (pos1-pos2)[(1,2),] 
+                
+                dist = np.linalg.norm(distvec)
+
+                newpos = curpos._replace(y=lastpos+dist, z=0.0)
+                newsec = section._replace(pos=newpos)
+                
+            else:
+                # set z to zero
+                newpos = curpos._replace(z=0.0)
+                newsec = section._replace(pos=newpos)
+            
+            newwing.sections.append(newsec)
+            lastsec = section
+            lastpos = newsec.pos[1]
+
+        return newwing

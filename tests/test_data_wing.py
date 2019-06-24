@@ -23,9 +23,25 @@ def d38wing():
     
     return awing
 
+
+@pytest.fixture
+def d43wing():
+    from wingstructure.data.wing import Wing
+
+    awing = Wing()
+
+    awing.append((0,0,0), 1.12)
+    awing.append((-68e-3,4.0,0.21996), 1.028)
+    awing.append((51e-3,7.223,0.42874), 0.673)
+    awing.append((0.1753225, 8.5, 0.6328), 0.454537)
+    awing.append((0.245, 9.0, 0.7424), 0.36)
+    
+    return awing
+
 # tests
 
-def test_wing_basicprops(d38wing):
+
+def test_wingbasicprops(d38wing):
     assert isclose(d38wing.area, 11.03516)
     assert d38wing.span==15.0
     assert isclose(d38wing.aspectratio, 20.3893736)
@@ -39,4 +55,12 @@ def test_controlsurfaces(d38wing):
     d38wing.add_controlsurface('aileron1', 4.51, 7.125, 0.2, 0.2, 'aileron')
 
 
+def test_flatten(d43wing):
+    flatwing = d43wing.flatten()
 
+    # check new spanwidth
+    assert isclose(flatwing.span, 2*9.0408708357794)
+    # area should have increased
+    assert flatwing.area > d43wing.area
+    # mac should decrease
+    assert flatwing.mac < d43wing.mac
