@@ -166,14 +166,6 @@ class Wing(_Wing):
     def airfoils(self):
         return np.array([sec.airfoil for sec in self.sections])
 
-    def within_airbrake(self, y):
-        within_ab = np.full_like(y, False)
-        for cs in self.controlsurfaces.values():
-            if cs.cstype in ('airbrake', 'spoiler'):
-                within_tmp = (cs.pos1 <= y) & (cs.pos2 >= y)
-                np.where(within_tmp, True, within_ab)
-        return within_ab
-
     def within_control(self, csname, y):
         try:
             cs = self.controlsurfaces[csname]

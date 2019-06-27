@@ -64,3 +64,22 @@ def test_flatten(d43wing):
     assert flatwing.area > d43wing.area
     # mac should decrease
     assert flatwing.mac < d43wing.mac
+
+
+def test_properties(d43wing):
+    # check array values with input data
+    assert (d43wing.chords == [1.12, 1.028, 0.673, 0.454537, 0.36]).all()
+    assert (d43wing.ys == [0.0, 4.0, 7.223, 8.5, 9.0]).all()
+    assert (d43wing.twists == 0.0).all()
+    assert (d43wing.airfoils == '').all()
+
+
+def test_heperfunctions(d43wing):
+    d43wing.add_controlsurface('aileron1', 4.0, 8.5, 0.8, 0.8, 'aileron')
+    d43wing.add_controlsurface('airbrake1', 2.4, 3.83, 0.5, 0.5, 'airbrake')
+
+    assert d43wing.within_control('airbrake1', 2.5)
+    assert d43wing.within_control('aileron1', 4.5)
+
+
+
