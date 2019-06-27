@@ -15,6 +15,13 @@ class _Wing:
     """
 
     _Section = namedtuple('Section', ['pos', 'chord', 'twist', 'airfoil'])
+    
+    def serializesection(self):
+        data = self._asdict()
+        data['pos'] = self.pos._asdict()
+        return data
+
+    _Section.serialize = serializesection
 
     def __init__(self,pos=(0.0, 0.0, 0.0), symmetric=True):
         self.x, self.y, self.z = pos
@@ -170,8 +177,18 @@ class Wing(_Wing):
         except KeyError:
             raise KeyError('{} is not a control surface'.format(csname))
 
+    def serialize(self):
+        data = {
+            'pos': {'x': self.x, 'y': self.y, 'z': self.z},
+            'symmetric': self.symmetric,
+            'sections': [deepcopy(sec.serialize()) for sec in self.sections],
+            'controlsurfaces': {name: cs._asdict() for name, cs in self.controlsurfaces.items()}
+        }
+
+        return data
+
     @classmethod
-    def from_dict(cls, adict):
+    def deserialize(cls, adict):
         """Create new Wing instance from dict
         
         Parameters
@@ -195,7 +212,7 @@ class Wing(_Wing):
 
         # add control surfaces
         try:
-            for name, csdict in adict['control-surfaces'].items():
+            for name, csdict in adict['controlsurfaces'].items():
                 wing.add_controlsurface(name, **csdict)
         except KeyError:
             pass

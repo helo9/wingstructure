@@ -86,3 +86,18 @@ def test_heperfunctions(d43wing):
         d43wing.within_control('airbrake15', 3.3)
 
 
+def test_serialization(d43wing):
+    from wingstructure.data.wing import Wing
+    d43wing.add_controlsurface('aileron1', 4.0, 8.5, 0.8, 0.8, 'aileron')
+    d43wing.add_controlsurface('airbrake1', 2.4, 3.83, 0.5, 0.5, 'airbrake')
+
+    data = d43wing.serialize()
+
+    d43wing2 = Wing.deserialize(data)
+
+    assert (d43wing.ys == d43wing2.ys).all()
+    assert (d43wing.chords == d43wing2.chords).all()
+    assert (d43wing.twists == d43wing2.twists).all()
+    assert (d43wing.airfoils == d43wing2.airfoils).all()
+    
+    assert d43wing.controlsurfaces['airbrake1'].pos1 == d43wing2.controlsurfaces['airbrake1'].pos1
