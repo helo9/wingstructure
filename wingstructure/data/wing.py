@@ -147,9 +147,6 @@ class Wing(_Wing):
         self.controlsurfaces[name] = self._ControlSurface(
                 pos1, pos2, depth1, depth2, cstype)
 
-    def _repr_svg_(self):
-        pass
-
     @property
     def chords(self):
         return np.array([sec.chord for sec in self.sections])
@@ -171,7 +168,7 @@ class Wing(_Wing):
             cs = self.controlsurfaces[csname]
             return (cs.pos1 <= y) & (y <= cs.pos2)
         except KeyError:
-            return np.full_like(y, False)
+            raise KeyError('{} is not a control surface'.format(csname))
 
     @classmethod
     def from_dict(cls, adict):
