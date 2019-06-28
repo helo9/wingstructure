@@ -81,6 +81,8 @@ def test_heperfunctions(d43wing):
     assert d43wing.within_control('airbrake1', 2.5)
     assert d43wing.within_control('aileron1', 4.5)
 
+    assert (d43wing.within_airbrake(np.array([1.0, 2.5, 4.0])) == np.array([False, True, False])).all()
+
     # except Exception with wrong control name
     with pytest.raises(KeyError):
         d43wing.within_control('airbrake15', 3.3)

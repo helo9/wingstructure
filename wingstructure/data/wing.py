@@ -176,6 +176,14 @@ class Wing(_Wing):
             return (cs.pos1 <= y) & (y <= cs.pos2)
         except KeyError:
             raise KeyError('{} is not a control surface'.format(csname))
+    
+    def within_airbrake(self, ys):
+        within_ab = np.full_like(ys, False, dtype=bool)
+        for cs in self.controlsurfaces.values():
+            if cs.cstype in ('airbrake', 'spoiler'):
+                within_tmp = (cs.pos1 <= ys) & (cs.pos2 >= ys)
+                within_ab = np.where(within_tmp, True, within_ab)
+        return within_ab
 
     def serialize(self):
         data = {
