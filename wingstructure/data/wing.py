@@ -17,8 +17,8 @@ class _Wing:
     _Section = namedtuple('Section', ['pos', 'chord', 'twist', 'airfoil'])
     
     def serializesection(self):
-        data = self._asdict()
-        data['pos'] = self.pos._asdict()
+        data = dict(self._asdict())
+        data['pos'] = dict(self.pos._asdict())
         return data
 
     _Section.serialize = serializesection
@@ -182,7 +182,7 @@ class Wing(_Wing):
             'pos': {'x': self.x, 'y': self.y, 'z': self.z},
             'symmetric': self.symmetric,
             'sections': [deepcopy(sec.serialize()) for sec in self.sections],
-            'controlsurfaces': {name: cs._asdict() for name, cs in self.controlsurfaces.items()}
+            'controlsurfaces': {name: dict(cs._asdict()) for name, cs in self.controlsurfaces.items()}
         }
 
         return data
