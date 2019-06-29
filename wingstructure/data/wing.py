@@ -171,6 +171,8 @@ class Wing(_Wing):
         return np.array([sec.airfoil for sec in self.sections])
 
     def within_control(self, csname, y):
+        if self.symmetric:
+            y = np.abs(y)
         try:
             cs = self.controlsurfaces[csname]
             return (cs.pos1 <= y) & (y <= cs.pos2)
@@ -178,6 +180,8 @@ class Wing(_Wing):
             raise KeyError('{} is not a control surface'.format(csname))
     
     def within_airbrake(self, ys):
+        if self.symmetric:
+            ys = np.abs(ys)
         within_ab = np.full_like(ys, False, dtype=bool)
         for cs in self.controlsurfaces.values():
             if cs.cstype in ('airbrake', 'spoiler'):
