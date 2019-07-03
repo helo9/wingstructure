@@ -2,7 +2,8 @@ import numpy as np
 
 
 def calc_lineloadresultants(ys, q):
-    """Calculate resultants of line loads acting on individual segments
+    """
+    Calculate resultants of line loads for segments
     """
     # calculate element lengths
     Δys = np.diff(ys)
@@ -27,7 +28,9 @@ def calc_lineloadresultants(ys, q):
             # center of trapez as attack point of resultant
             y_res.append(ys[i] + np.abs(Δys[i-1])/3 * np.abs((q[i]+2*q[i-1]) / (q[i]+q[i-1])))
         else:
-            # sign changes from q[i-1] to q[i] -> two triangles
+            # sign changes from q[i-1] to q[i]
+            # cannot be captured by single resultant within this section
+            # -> resultants of the two triangles are used
             y_0 = ys[i] + Δys[i] * q[i]/q[i-1]
 
             # left triangle
@@ -37,8 +40,17 @@ def calc_lineloadresultants(ys, q):
             # right triangle
             Q.append(0.5*Δys[i]*q[i-1])
             y_res.append(ys[i-1] - (ys[i-1]-ys[i-1])/3)
-        
-    return np.array(y_res), np.array(Q)
+    
+    loads = np.zeros((len(y_res), 6))
+    loads[:, 1] = y_res
+    loads[:, -1] = Q
+
+    custom_types = np.dtype({
+    'names': ['x', 'y', 'z', 'Q_x', 'N', 'Q_z'],
+    'formats': ['f4',]*6
+         })
+    
+    return np.array([tuple(a) for a in loads], dtype=custom_types)
 
 
 def combine_loads( loadslist ):
