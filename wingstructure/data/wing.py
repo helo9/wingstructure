@@ -230,8 +230,9 @@ class Wing(_Wing):
             pass
         
         return wing
-    
-    def flatten(self):
+
+class FlatWing(Wing):
+    def __init__(self, wing):
         """create flat wing instance
         
         Returns
@@ -240,12 +241,14 @@ class Wing(_Wing):
             a flat wing instance
         """
 
-        newwing = Wing()
+        super().__init__((wing.x, wing.y, wing.z), wing.symmetric)
+
+        self.basewing = wing
 
         lastsec = None
         lastpos = 0.0
 
-        for section in self.sections:
+        for section in wing.sections:
 
             curpos = section.pos
 
@@ -267,8 +270,6 @@ class Wing(_Wing):
                 newpos = curpos._replace(z=0.0)
                 newsec = section._replace(pos=newpos)
             
-            newwing.sections.append(newsec)
+            self.sections.append(newsec)
             lastsec = section
             lastpos = newsec.pos[1]
-
-        return newwing

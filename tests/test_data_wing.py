@@ -56,7 +56,8 @@ def test_controlsurfaces(d38wing):
 
 
 def test_flatten(d43wing):
-    flatwing = d43wing.flatten()
+    from wingstructure.data.wing import FlatWing
+    flatwing = FlatWing(d43wing)
 
     # check new spanwidth
     assert isclose(flatwing.span, 2*9.0408708357794)
