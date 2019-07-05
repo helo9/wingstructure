@@ -9,9 +9,8 @@ Point = namedtuple('Point', 'x y z')
 
 
 class _Wing:
-    """A data structue for multi trapez wing definitions.
-
-    Not inteded for usage. Have a look at the Wing class.
+    """
+    A data structue for multi trapez wing definitions.
     """
 
     _Section = namedtuple('Section', ['pos', 'chord', 'twist', 'airfoil'])
@@ -232,6 +231,17 @@ class Wing(_Wing):
         return wing
 
 class FlatWing(Wing):
+    """A class representing the flattend version of a wing
+
+    Can be useful in calculation of aerodynamic loads with methods not suporting
+    dihedral. Flat means parallel to the x-y-plane.
+    
+    Parameters
+    ----------
+    wing : Wing
+        the wing to be flattend
+    """
+    
     def __init__(self, wing):
         """create flat wing instance
         
@@ -273,3 +283,46 @@ class FlatWing(Wing):
             self.sections.append(newsec)
             lastsec = section
             lastpos = newsec.pos[1]
+
+    def transform_loads(self, loads, rotate=False):
+        """transform loads from flat to three dimensional wing
+        
+        Parameters
+        ----------
+        loads : sturctured numpy array
+            colums are x, y, z, Q_x, N, Q_y
+        rotate : bool, optional
+            switch for rotation of loads, by default False
+        """
+
+        ys = self.ys
+        dy = np.diff(ys)
+
+        transformed_loads = np.copy(loads)
+        tl_view = transformed_loads.view((transformed_loads.dtype[0], len(transformed_loads.dtype.names)))
+
+        for j, load in enumerate(loads):
+            y = load['y']
+
+            # find last value smaller than y in ys
+            i = np.searchsorted(ys, np.abs(y))
+
+            # position in 3D
+            pos1 = np.array(self.basewing.sections[i].pos)
+            pos2 = np.array(self.basewing.sections[i+1].pos)
+
+            # calculate relativ position between sections
+            f = (np.abs(y)-ys[i])/dy[i]
+
+            # 
+            tl_view[j, :3] = pos1 + (pos2-pos1) * f
+
+            if y<0.0:
+                tl_view[j,1] *= -1.0
+
+            if rotate:
+                raise Exception('Rotation is not yes implemented')
+
+        return transformed_loads
+
+
