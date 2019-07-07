@@ -2,8 +2,19 @@ import numpy as np
 
 
 def calc_lineloadresultants(ys, q):
-    """
-    Calculate resultants of line loads for segments
+    """Calculate resultants of loads for trapezodial load distributin
+    
+    Parameters
+    ----------
+    ys : numpy array, list
+        grid points
+    q : numpy array, list
+        field values
+    
+    Returns
+    -------
+    structured array (numpy)
+        discrete resultant forces and coordinates [[x,y,z,Q_x, N, Q_y], ...]
     """
     # calculate element lengths
     Δys = np.diff(ys)
@@ -53,15 +64,6 @@ def calc_lineloadresultants(ys, q):
          })
     
     return np.array([tuple(a) for a in loads], dtype=custom_types)
-
-
-def combine_loads( loadslist ):
-    loads = np.vstack(loadslist)
-    
-    # sort by y coord
-    loads = loads[np.flip(loads[:,1].argsort())]
-    
-    return loads
 
 
 def calc_moments(coords, discrete_loads):
