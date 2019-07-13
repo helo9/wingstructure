@@ -2,7 +2,19 @@ import numpy as np
 
 
 def calc_lineloadresultants(ys, q):
-    """Calculate resultants of line loads acting on individual segments
+    """Calculate resultants of loads for trapezodial load distributin
+    
+    Parameters
+    ----------
+    ys : numpy array, list
+        grid points
+    q : numpy array, list
+        field values
+    
+    Returns
+    -------
+    structured array (numpy)
+        discrete resultant forces and coordinates [[x,y,z,Q_x, N, Q_y], ...]
     """
     # calculate element lengths
     Δys = np.diff(ys)
@@ -25,29 +37,33 @@ def calc_lineloadresultants(ys, q):
             # trapez rule to get resultant
             Q.append(Δys[i-1] * (q[i]+q[i-1])/2)
             # center of trapez as attack point of resultant
-            y_res.append(ys[i] + np.abs(Δys[i-1])/3 * np.abs((q[i]+2*q[i-1]) / (q[i]+q[i-1])))
+            y_res.append(ys[i-1] + np.abs(Δys[i-1])/3 * np.abs((q[i-1]+2*q[i]) / (q[i]+q[i-1])))
         else:
-            # sign changes from q[i-1] to q[i] -> two triangles
-            y_0 = ys[i] + Δys[i] * q[i]/q[i-1]
+            # sign changes from q[i-1] to q[i]
+            # cannot be captured by single resultant within this section
+            # -> resultants of the two triangles are used
+            y_0 = ys[i-1] + Δys[i-1] * np.abs(q[i]/q[i-1]) / (1 + np.abs(q[i]/q[i-1]))
+
+            print(f'y_0 = {y_0, Δys, ys[i-1]}')
 
             # left triangle
-            Q.append(0.5*Δys[i]*q[i])
-            y_res.append(ys[i] + 1/3 * (y_0 - ys[i]))
+            Q.append(0.5*(y_0-ys[i-1])*q[i-1])
+            y_res.append(ys[i-1] + (y_0 - ys[i-1])/3.0)
 
             # right triangle
-            Q.append(0.5*Δys[i]*q[i-1])
-            y_res.append(ys[i-1] - (ys[i-1]-ys[i-1])/3)
-        
-    return np.array(y_res), np.array(Q)
-
-
-def combine_loads( loadslist ):
-    loads = np.vstack(loadslist)
+            Q.append(0.5*(ys[i] - y_0)*q[i])
+            y_res.append(ys[i] - (ys[i]-y_0)/3.0)
     
-    # sort by y coord
-    loads = loads[np.flip(loads[:,1].argsort())]
+    loads = np.zeros((len(y_res), 6))
+    loads[:, 1] = y_res
+    loads[:, -1] = Q
+
+    custom_types = np.dtype({
+    'names': ['x', 'y', 'z', 'Q_x', 'N', 'Q_z'],
+    'formats': ['f4',]*6
+         })
     
-    return loads
+    return np.array([tuple(a) for a in loads], dtype=custom_types)
 
 
 def calc_moments(coords, discrete_loads):
