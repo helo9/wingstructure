@@ -300,7 +300,7 @@ class FlatWing(Wing):
         ys = self.ys
         dy = np.diff(ys)
 
-        transformed_loads = np.copy(loads)
+        transformed_loads = np.array(loads, copy=True, dtype=np.float)
 
         for j, load in enumerate(loads):
             y = load[1]
@@ -309,11 +309,11 @@ class FlatWing(Wing):
             i = np.searchsorted(ys, np.abs(y))
 
             # position in 3D
-            pos1 = np.array(self.basewing.sections[i].pos)
-            pos2 = np.array(self.basewing.sections[i+1].pos)
+            pos1 = np.array(self.basewing.sections[i-1].pos)
+            pos2 = np.array(self.basewing.sections[i].pos)
 
             # calculate relativ position between sections
-            f = (np.abs(y)-ys[i])/dy[i]
+            f = (np.abs(y)-ys[i-1])/dy[i-1]
 
             # interpolate position
             transformed_loads[j, :3] = pos1 + (pos2-pos1) * f

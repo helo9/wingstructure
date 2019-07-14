@@ -51,11 +51,7 @@ def test_wingbasicprops(d38wing):
     assert isclose(macpos[0], 0.2109074-0.7706271/4)
 
 
-def test_controlsurfaces(d38wing):
-    d38wing.add_controlsurface('aileron1', 4.51, 7.125, 0.2, 0.2, 'aileron')
-
-
-def test_flatten(d43wing):
+def test_flatwing(d43wing):
     from wingstructure.data.wing import FlatWing
     flatwing = FlatWing(d43wing)
 
@@ -66,6 +62,26 @@ def test_flatten(d43wing):
     # mac should decrease
     assert flatwing.mac < d43wing.mac
 
+
+def test_flatwing_transformload():
+    from wingstructure.data.wing import Wing, FlatWing
+    
+    wing = Wing()
+    wing.append()
+    wing.append(pos=(0.0, 1.0, 1.0))
+
+    flatwing = FlatWing(wing)
+
+    loads = np.array([
+        [0,1,0,0,0,1,0]
+    ])
+
+    tloads = flatwing.transform_loads(loads)
+
+    assert np.isclose(
+            tloads[0, :3], 
+            [0, 1/np.sqrt(2), 1/np.sqrt(2)]
+        ).all()
 
 def test_properties(d43wing):
     # check array values with input data
