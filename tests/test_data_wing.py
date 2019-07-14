@@ -56,7 +56,6 @@ def test_controlsurfaces(d38wing):
 
 
 def test_flatten(d43wing):
-
     from wingstructure.data.wing import FlatWing
     flatwing = FlatWing(d43wing)
 

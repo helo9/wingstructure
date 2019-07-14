@@ -229,46 +229,6 @@ class Wing(_Wing):
             pass
         
         return wing
-    
-    def flatten(self):
-        """create flat wing instance
-        
-        Returns
-        -------
-        Wing
-            a flat wing instance
-        """
-
-        newwing = Wing()
-
-        lastsec = None
-        lastpos = 0.0
-
-        for section in self.sections:
-
-            curpos = section.pos
-
-            if lastsec is not None:
-                # calculate section distance in y-z-plane
-                pos1 = np.array(section.pos)
-                pos2 = np.array(lastsec.pos)
-
-                # ignore x -> 2D vector
-                distvec = (pos1-pos2)[(1,2),] 
-                
-                dist = np.linalg.norm(distvec)
-
-                newpos = curpos._replace(y=lastpos+dist, z=0.0)
-                newsec = section._replace(pos=newpos)
-                
-            else:
-                # set z to zero
-                newpos = curpos._replace(z=0.0)
-                newsec = section._replace(pos=newpos)
-            
-            newwing.sections.append(newsec)
-            lastsec = section
-            lastpos = newsec.pos[1]
 
             
 class FlatWing(Wing):
@@ -325,13 +285,14 @@ class FlatWing(Wing):
             lastsec = section
             lastpos = newsec.pos[1]
 
+
     def transform_loads(self, loads, rotate=False):
         """transform loads from flat to three dimensional wing
         
         Parameters
         ----------
-        loads : sturctured numpy array
-            colums are x, y, z, Q_x, N, Q_y
+        loads : array
+            resultant loads array [[x, y, z, Q_x, N, Q_y]..]
         rotate : bool, optional
             switch for rotation of loads, by default False
         """
@@ -340,10 +301,9 @@ class FlatWing(Wing):
         dy = np.diff(ys)
 
         transformed_loads = np.copy(loads)
-        tl_view = transformed_loads.view((transformed_loads.dtype[0], len(transformed_loads.dtype.names)))
 
         for j, load in enumerate(loads):
-            y = load['y']
+            y = load[1]
 
             # find last value smaller than y in ys
             i = np.searchsorted(ys, np.abs(y))
@@ -355,11 +315,11 @@ class FlatWing(Wing):
             # calculate relativ position between sections
             f = (np.abs(y)-ys[i])/dy[i]
 
-            # 
-            tl_view[j, :3] = pos1 + (pos2-pos1) * f
+            # interpolate position
+            transformed_loads[j, :3] = pos1 + (pos2-pos1) * f
 
             if y<0.0:
-                tl_view[j,1] *= -1.0
+                transformed_loads[j,1] *= -1.0
 
             if rotate:
                 raise Exception('Rotation is not yes implemented')
