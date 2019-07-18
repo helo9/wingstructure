@@ -70,10 +70,19 @@ def calc_lineloadresultants(ys, q):
 
 
 def get_nodes(wing, ys):
-    pass
+    from numpy import diff, linalg
+    from scipy.interpolate import interp1d
+
+    pos = [(sec.pos.x, sec.pos.y, sec.pos.z) for sec in wing.sections]
+
+    pos = np.array(pos)
+
+    secy = np.cumsum(linalg.norm(np.diff(pos[:,1:], axis=0, prepend=0), axis=1))
+
+    return interp1d(secy, pos, axis=0)(ys)
 
 
-def solve_equilibrium(nodes, loads, free_node):
+def solve_equilibrium(nodes, forces=np.zeros((1,7)), moments=np.zeros((1,7)), free_node=0):
     """Solves static equilibrium in unbranched stick model
     
     Parameters
@@ -82,6 +91,8 @@ def solve_equilibrium(nodes, loads, free_node):
         coordinates of nodes: [[x, y, z], ...]
     forces : array
         forces with point of attack and segment: [[x, y, z, fx, fy, fz, seg], ...]
+    moments: array
+        discrete moments [[mx, my, mz, seg], ...]
     free_node : int
         designate node without loads
     
@@ -90,6 +101,7 @@ def solve_equilibrium(nodes, loads, free_node):
     array
         internal loads at nodes [[Qx, Qy Qz, Mx, My, Mz], ...]
     """
+
     n = len(nodes)
     A = np.zeros([6*n,6*n])
     b = np.zeros(6*n)
@@ -119,15 +131,19 @@ def solve_equilibrium(nodes, loads, free_node):
         idx = 6*free_node
         A[6*(n-1) + i][6*free_node + i] = 1
 
-    # right hand side / external forces
+    # right hand side / external loads
     for i in range(n-1):
-        for l in loads[loads[:,-1] == i]:
+        # forces
+        for l in forces[forces[:,-1] == i]:
             # force
             b[6*i:6*i+3] += l[3:-1]
-
+    
             # resulting moment (cross product)
             M = np.cross(l[:3] - nodes[i], l[3:-1]) 
             b[6*i+3:6*i+6] += M
+        # moments
+        for m in moments[moments[:,-1] == i]:
+            b[6*i+3:6*i+6] += m[:-1]
 
     x = np.linalg.solve(A, -b)
 

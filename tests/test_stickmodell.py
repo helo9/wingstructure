@@ -23,21 +23,50 @@ def test_lineloadresultants():
     assert np.all(loads[:,-1] == [0, 1, 1, 2, 2 ,3, 4])
 
 
+def test_getnodes():
+    from wingstructure.data.wing import Wing
+    from wingstructure.structure.stickmodel import get_nodes
+
+    ys = np.array([0.0, 0.5, 1.0, 1.2, 2.0])
+
+    awing = Wing()
+
+    awing.append()
+    awing.append(pos=(0.0, 1.0, 0.0))
+    awing.append(pos=(0.0, 1.0, 1.0))
+
+    res = get_nodes(awing, ys)
+
+    assert np.isclose(
+        res,
+        [
+            [0.0, 0.0, 0.0],
+            [0.0, 0.5, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, 1.0, 0.2],
+            [0.0, 1.0, 1.0]
+        ]
+    ).all()
+
+
 def test_solve2Ds():
     from wingstructure.structure.stickmodel import solve_equilibrium
 
     nodes = np.array([[0,0,0], [0,1,0], [0,2,0]])
-    loads = np.array([
+    forces = np.array([
         [0, 0.5, 0, 0, 1, 1, 0],
         [0, 1.5, 0, 0, 0, 2, 1]
     ])
 
-    free_node = 2
+    moments = np.array([
+        [0, 0, 1, 0],
+        [0, 0, 2, 1]
+    ])
 
-    sol = solve_equilibrium(nodes, loads, free_node)
+    sol = solve_equilibrium(nodes, forces, moments, free_node=2)
 
     assert np.isclose(sol, [
-        [0, 1, 3, 3.5, 0, 0],
-        [0, 0, 2, 1, 0, 0],
+        [0, 1, 3, 3.5, 0, 3],
+        [0, 0, 2, 1, 0, 2],
         [0, 0, 0, 0, 0, 0]
     ]).all()
