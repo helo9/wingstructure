@@ -8,6 +8,13 @@ import numpy as np
 Point = namedtuple('Point', 'x y z')
 
 
+# monkey patch function
+def serializesection(self):
+    data = dict(self._asdict())
+    data['pos'] = dict(self.pos._asdict())
+    return data
+
+
 class _Wing:
     """
     A data structue for multi trapez wing definitions.
@@ -15,10 +22,7 @@ class _Wing:
 
     _Section = namedtuple('Section', ['pos', 'chord', 'twist', 'airfoil'])
     
-    def serializesection(self):
-        data = dict(self._asdict())
-        data['pos'] = dict(self.pos._asdict())
-        return data
+
 
     _Section.serialize = serializesection
 
@@ -276,44 +280,3 @@ class FlatWing(Wing):
             self.sections.append(newsec)
             lastsec = section
             lastpos = newsec.pos[1]
-
-
-    def transform_loads(self, loads, rotate=False):
-        """transform loads from flat to three dimensional wing
-        
-        Parameters
-        ----------
-        loads : array
-            resultant loads array [[x, y, z, Q_x, N, Q_y]..]
-        rotate : bool, optional
-            switch for rotation of loads, by default False
-        """
-
-        ys = self.ys
-        dy = np.diff(ys)
-
-        transformed_loads = np.array(loads, copy=True, dtype=np.float)
-
-        for j, load in enumerate(loads):
-            y = load[1]
-
-            # find last value smaller than y in ys
-            i = np.searchsorted(ys, np.abs(y))
-
-            # position in 3D
-            pos1 = np.array(self.basewing.sections[i-1].pos)
-            pos2 = np.array(self.basewing.sections[i].pos)
-
-            # calculate relativ position between sections
-            f = (np.abs(y)-ys[i-1])/dy[i-1]
-
-            # interpolate position
-            transformed_loads[j, :3] = pos1 + (pos2-pos1) * f
-
-            if y<0.0:
-                transformed_loads[j,1] *= -1.0
-
-            if rotate:
-                raise Exception('Rotation is not yes implemented')
-
-        return transformed_loads

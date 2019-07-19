@@ -63,26 +63,6 @@ def test_flatwing(d43wing):
     assert flatwing.mac < d43wing.mac
 
 
-def test_flatwing_transformload():
-    from wingstructure.data.wing import Wing, FlatWing
-    
-    wing = Wing()
-    wing.append()
-    wing.append(pos=(0.0, 1.0, 1.0))
-
-    flatwing = FlatWing(wing)
-
-    loads = np.array([
-        [0,1,0,0,0,1,0]
-    ])
-
-    tloads = flatwing.transform_loads(loads)
-
-    assert np.isclose(
-            tloads[0, :3], 
-            [0, 1/np.sqrt(2), 1/np.sqrt(2)]
-        ).all()
-
 def test_properties(d43wing):
     # check array values with input data
     assert (d43wing.chords == [1.12, 1.028, 0.673, 0.454537, 0.36]).all()
@@ -128,4 +108,4 @@ def test_serialization(d43wing):
 
     # control surfaces are optional, should not raise any Exception if missing
     del data['controlsurfaces']
-    d43wing3 = Wing.deserialize(data)
+    Wing.deserialize(data)
