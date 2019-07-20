@@ -23,7 +23,7 @@ def test_lineloadresultants():
     assert np.all(loads[:,-1] == [0, 1, 1, 2, 2 ,3, 4])
 
 
-def test_flatwing_transformload():
+def test_transformload():
     from wingstructure.data.wing import Wing, FlatWing
     from wingstructure.structure.stickmodel import transform_loads
     
@@ -44,6 +44,33 @@ def test_flatwing_transformload():
             [0, 1/np.sqrt(2), 1/np.sqrt(2)]
         ).all()
 
+def test_transformload_with_rotation():
+    from wingstructure.data.wing import Wing, FlatWing
+    from wingstructure.structure.stickmodel import transform_loads 
+
+    wing = Wing()
+    wing.append()
+    wing.append(pos=(0.0, 1.0, 1.0))
+
+    flatwing = FlatWing(wing)
+
+    loads = np.array([
+        [0,1,0,0,0,1,0]
+    ])
+
+    tloads = transform_loads(flatwing, loads, rotate=True)
+
+    # check correct transformation of attack point
+    assert np.isclose(
+            tloads[0, :3], 
+            [0, 1/np.sqrt(2), 1/np.sqrt(2)]
+        ).all()
+
+    # check transformation/rotation of force vector
+    assert np.isclose(
+        tloads[0 ,3:-1],
+        [0, -1/np.sqrt(2), 1/np.sqrt(2)]
+    ).all()
 
 def test_getnodes():
     from wingstructure.data.wing import Wing

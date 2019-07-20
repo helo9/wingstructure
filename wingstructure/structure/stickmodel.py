@@ -107,7 +107,18 @@ def transform_loads(flatwing, loads, rotate=False):
             transformed_loads[j,1] *= -1.0
 
         if rotate:
-            raise Exception('Rotation is not yes implemented')
+            rotmat = np.eye(3)
+
+            n0 = np.array((0,1,0))
+            n1 = pos2-pos1
+            n1 /= np.linalg.norm(n1)
+
+            cosφ = np.dot(n0, n1)
+            sinφ = np.sqrt(1-cosφ**2)
+
+            rotmat[1:,1:] = [[cosφ, -sinφ], [sinφ, cosφ]]
+
+            transformed_loads[j, 3:-1] = transformed_loads[j, 3:-1] @ rotmat.T
 
     return transformed_loads
 
