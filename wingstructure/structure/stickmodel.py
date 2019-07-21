@@ -69,6 +69,36 @@ def calc_lineloadresultants(ys, q):
     return loads
 
 
+def calc_discretemoments(ys, m, axis=0):
+    """Determine discrete moments from moment distribution
+    
+    Parameters
+    ----------
+    ys : array
+        grid points
+    m : array
+        moment distribution values
+    axis : int, optional
+        axis the moments act, by default 0
+    
+    Returns
+    -------
+    array
+        discrete moemnts
+    """
+
+    m = np.array(m)
+
+    # calculate element lengths
+    Δys = np.diff(ys)
+
+    M = np.zeros((len(Δys), 4))
+    M[:, axis] = 0.5 * (m[1:]+m[:-1]) * Δys
+
+    M[:, 3] = np.arange(0,len(Δys))
+
+    return M
+
 def transform_loads(flatwing, loads, rotate=False):
     """transform loads from flat to three dimensional wing
     
@@ -124,6 +154,20 @@ def transform_loads(flatwing, loads, rotate=False):
 
 
 def get_nodes(wing, ys):
+    """calculate grid points from wing
+    
+    Parameters
+    ----------
+    wing : Wing
+        a object describing a wing
+    ys : array
+        grid points on flattend span
+    
+    Returns
+    -------
+    array
+        nodes [[x,y,z],...]
+    """
     from numpy import diff, linalg
     from scipy.interpolate import interp1d
 

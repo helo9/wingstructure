@@ -5,7 +5,10 @@ import numpy as np
 def test_lineloadresultants():
     from wingstructure.structure.stickmodel import calc_lineloadresultants
 
-    loads = calc_lineloadresultants((-2.0, -1.0, 1.0, 2.0, 3.0, 4.0, 5.0), (1.0, 1.0, -1.0, 1.0, 2.0, 0.0, 0.0))
+    loads = calc_lineloadresultants(
+        (-2.0, -1.0, 1.0, 2.0, 3.0, 4.0, 5.0), 
+        (1.0, 1.0, -1.0, 1.0, 2.0, 0.0, 0.0)
+    )
 
     # check that all not involved values are zero
     assert (loads[:,0]==0.0).all()
@@ -21,6 +24,21 @@ def test_lineloadresultants():
 
     # check segment assigment
     assert np.all(loads[:,-1] == [0, 1, 1, 2, 2 ,3, 4])
+
+
+def test_discretemoments():
+    from wingstructure.structure.stickmodel import calc_discretemoments
+
+    ys = np.array((-2.0, -1.0, 1.0, 2.0, 3.0, 4.0, 5.0))
+    m = (1.0, 1.0, -1.0, 1.0, 2.0, 0.0, 0.0)
+
+    moments = calc_discretemoments(ys, m, axis=0)
+
+    assert np.isclose(
+        moments[:, 0],
+        [1, 0, 0, 1.5, 1, 0]
+    ).all()
+
 
 
 def test_transformload():
